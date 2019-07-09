@@ -1,5 +1,5 @@
 from waitress import serve
-from falcon.api import test
+from falcon_api.serve import api
 
 if __name__ == '__main__':
-    serve(test, host='0.0.0.0', port=5555)
+    serve(api, host='0.0.0.0', port=5555)
