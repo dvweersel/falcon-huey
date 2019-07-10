@@ -11,24 +11,23 @@ class Regressor(BaseEstimator, RegressorMixin):
         self.B = None
         self.d = degree
 
-    @staticmethod
     def xtoX(self, x):
-        X = np.empty((len(x), self.degree + 1))
-        for i in range(self.degree + 1):
-            X[:,i] = x**i
+        X = np.empty((len(x), self.d + 1))
+        for i in range(self.d + 1):
+            X[:, i] = x**i
         return X
 
     def fit(self, x, y):
-        X, Y = self.xtoX(x, self.d), y
-        time.sleep(np.random.randint(10, 30))  # simulate slow computation
+        X, Y = self.xtoX(x), y
+        # time.sleep(np.random.randint(10, 30))  # simulate slow computation
         self.B = np.linalg.pinv((X.T).dot(X)).dot((X.T).dot(Y))
 
     def predict(self, x):
         if self.B is None:
             raise Exception('Model not fitted!')
 
-        time.sleep(np.random.randint(10, 30))  # simulate slow computation
-        return self.xtoX(x, self.d).dot(self.B)
+        # time.sleep(np.random.randint(10, 30))  # simulate slow computation
+        return self.xtoX([x]).dot(self.B)
 
     def save(self, path='data/model.json'):
         with open(path, 'w') as f:

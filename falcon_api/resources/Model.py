@@ -8,41 +8,43 @@ import json
 class Fit:
     @staticmethod
     def on_post(req, resp):
+        """
+            Fits a regressor with degree d
+        """
+
         x, y = get_data()
 
-        query = json.loads(req.stream.read())  # this is how you capture POST content
+        d = int(req.media.get('d'))
 
-        d = int(query['degree'])
         model = Regressor(d)
         model.fit(x, y)
         save(model)
         resp.body = json.dumps({'success': "Model artefact written in JSON format", 'components': model.B.tolist()})
 
     @staticmethod
-    def on_get(req, resp, d):
-        x, y = get_data()
-
-        model = Regressor(d)
-        model.fit(x, y)
-        save(model)
-        resp.body = json.dumps({'success': "Model artefact written in JSON format", 'components': model.B.tolist()})
+    def on_get(req, resp):
+        """
+            Returns the fitted regressor
+        """
+        model = load()
+        resp.body = json.dumps({'degree': model.d, 'components': model.B.tolist()})
 
 
 class Predict:
+    # @staticmethod
+    # def on_post(req, resp):
+    #     query = json.loads(req.stream.read())
+    #     x = int(query['x'])
+    #
+    #     try:
+    #         model = load()
+    #         resp.body = json.dumps(model.predict(x).tolist())  # predict on the same x (!)
+    #     except FileNotFoundError:
+    #         resp.body = json.dumps(
+    #             {'error': "Model not trained yet"})
+
     @staticmethod
     def on_get(req, resp):
-        query = json.loads(req.stream.read())
-        x = int(query['x'])
-
-        try:
-            model = load()
-            resp.body = json.dumps(model.predict(x).tolist())  # predict on the same x (!)
-        except FileNotFoundError:
-            resp.body = json.dumps(
-                {'error': "Model not trained yet"})
-
-    @staticmethod
-    def on_get(req, resp, x):
         try:
             model = load()
             resp.body = json.dumps(model.predict(x).tolist())  # predict on the same x (!)
@@ -51,12 +53,12 @@ class Predict:
                 {'error': "Model not trained yet"})
 
 
-def save(model, path='data/model.json'):
+def save(model, path='model.json'):
     with open(path, 'w') as f:
         json.dump(jsonpickle.encode(model), f)  # making sure the output is serializable
 
 
-def load(path='data/model.json'):
+def load(path='model.json'):
     with open(path, 'r') as f:
         m = f.read()
     return jsonpickle.decode(json.loads(m))
