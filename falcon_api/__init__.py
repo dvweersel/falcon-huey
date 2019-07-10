@@ -1,8 +1,6 @@
 import falcon
 from falcon_cors import CORS
-from falcon_api.resources.APIStatus import APIStatus
-from falcon_api.resources.Model import Fit, Predict
-
+from falcon_api.routes import register_routes
 
 def create_api():
 
@@ -12,9 +10,3 @@ def create_api():
     register_routes(api)
 
     return api
-
-
-def register_routes(api):
-    # api.add_route('/model/predict', Predict())
-    # api.add_route('/model/fit/{algo}', Fit())
-    api.add_route('/', APIStatus())
