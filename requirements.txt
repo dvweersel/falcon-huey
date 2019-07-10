@@ -1,3 +1,6 @@
+numpy
 falcon
+jsonpickle
+scikit-learn
 gunicorn
 waitress # for dev purposes

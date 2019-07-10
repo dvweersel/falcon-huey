@@ -1,15 +1,20 @@
 import falcon
-import json
-
-api = falcon.API()
-
-
-class APIStatus:
-
-    @staticmethod
-    def on_get(req, resp):
-        resp.status = falcon.HTTP_200
-        resp.body = json.dumps('pong')
+from falcon_cors import CORS
+from falcon_api.resources.APIStatus import APIStatus
+from falcon_api.resources.Model import Fit, Predict
 
 
-api.add_route('/ping', APIStatus())
+def create_api():
+
+    cors = CORS(allow_all_origins=True)
+    api = falcon.API(middleware=[cors.middleware])
+
+    register_routes(api)
+
+    return api
+
+
+def register_routes(api):
+    # api.add_route('/model/predict', Predict())
+    # api.add_route('/model/fit/{algo}', Fit())
+    api.add_route('/', APIStatus())

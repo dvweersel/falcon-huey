@@ -1,2 +1,2 @@
-# flaskapp_bare
-A barebones Flask app using the application factory. 
+# Falcon-Huey
+API made with Falcon to serve a machine learning model together with Huey
