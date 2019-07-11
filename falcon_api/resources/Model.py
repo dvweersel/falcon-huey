@@ -29,9 +29,10 @@ class Fit:
         model = Regressor()
         model.load()
 
-        params = model.get_params()
-        print(f"Parameters of loaded model {params}")
-        resp.body = json.dumps({'components' : model.get_components()})
+        if model.is_fitted:
+            resp.body = json.dumps({'components': model.get_components()})
+        else:
+            resp.body = json.dumps({'error': 'Model not fitted'})
 
 
 class Predict:
@@ -60,14 +61,14 @@ class Predict:
         except FileNotFoundError:
             resp.body = json.dumps({'error': "Model not trained yet"})
 
-
-class Score:
-
-    def on_get(self, req, resp):
-        try:
-            e = Evaluate(y)
-            m = load()
-            resp.body = json.dumps(e.score(m.predict(x)))  # deviation du to fuzz factor
-        except FileNotFoundError:
-            resp.body = json.dumps(
-                {'error': "Model not trained yet; visit one of the '/fit/{multi,poly}' endpoints first"})
+#
+# class Score:
+#
+#     def on_get(self, req, resp):
+#         try:
+#             e = Evaluate(y)
+#             m = load()
+#             resp.body = json.dumps(e.score(m.predict(x)))  # deviation du to fuzz factor
+#         except FileNotFoundError:
+#             resp.body = json.dumps(
+#                 {'error': "Model not trained yet; visit one of the '/fit/{multi,poly}' endpoints first"})

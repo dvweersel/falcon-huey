@@ -7,9 +7,10 @@ from sklearn.base import BaseEstimator, RegressorMixin
 
 class Regressor(BaseEstimator, RegressorMixin):
 
-    def __init__(self, degree=None, b=None, x=None, y=None):
+    def __init__(self, degree=None, b=None, x=None, y=None, is_fitted=False):
         self.degree = degree
         self.b = b
+        self.is_fitted = is_fitted
         self.x = x
         self.y = y
 
@@ -28,6 +29,7 @@ class Regressor(BaseEstimator, RegressorMixin):
         time.sleep(np.random.randint(10, 30))  # simulate slow computation
         self.b = np.linalg.pinv((X.T).dot(X)).dot((X.T).dot(Y))
 
+        self.is_fitted = True
         return self.score(self.predict(x))
 
     def predict(self, x):

@@ -1,5 +1,6 @@
 numpy
 falcon
+huey
 jsonpickle
 scikit-learn
 gunicorn
