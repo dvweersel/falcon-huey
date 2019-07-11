@@ -7,43 +7,68 @@ from sklearn.base import BaseEstimator, RegressorMixin
 
 class Regressor(BaseEstimator, RegressorMixin):
 
-    def __init__(self, degree):
-        self.B = None
-        self.d = degree
+    def __init__(self, degree=None, b=None, x=None, y=None):
+        self.degree = degree
+        self.b = b
+        self.x = x
+        self.y = y
 
-    def xtoX(self, x):
-        X = np.empty((len(x), self.d + 1))
-        for i in range(self.d + 1):
-            X[:, i] = x**i
+    def xToX(self, x):
+        X = np.empty((len(x), self.degree + 1))
+        for i in range(self.degree + 1):
+            X[:, i] = np.power(x, i)
+
         return X
 
     def fit(self, x, y):
-        X, Y = self.xtoX(x), y
-        # time.sleep(np.random.randint(10, 30))  # simulate slow computation
-        self.B = np.linalg.pinv((X.T).dot(X)).dot((X.T).dot(Y))
+        self.x = x
+        self.y = y
+
+        X, Y = self.xToX(x), y
+        time.sleep(np.random.randint(10, 30))  # simulate slow computation
+        self.b = np.linalg.pinv((X.T).dot(X)).dot((X.T).dot(Y))
+
+        return self.score(self.predict(x))
 
     def predict(self, x):
-        if self.B is None:
+        if self.b is None:
             raise Exception('Model not fitted!')
 
-        # time.sleep(np.random.randint(10, 30))  # simulate slow computation
-        return self.xtoX([x]).dot(self.B)
+        X = self.xToX(x)
+        time.sleep(np.random.randint(10, 30))  # simulate slow computation
+        return X.dot(self.b)
 
-    def save(self, path='data/model.json'):
+    def score(self, y, algo='mse'):
+        if algo == 'sse':
+            return self._sse(y)
+        elif algo == 'mse':
+            return self._mse(y)
+        elif algo == 'r2':
+            return self._r2(y)
+        else:
+            raise ValueError('Evaluation algorithm not implemented')
+
+    def _sse(self, y):
+        return ((y - self.y)**2).sum()
+
+    def _mse(self, y):
+        return self._sse(y)/len(self.y)
+
+    def _r2(self, y):
+        return 1 - self._sse(y)/((self.y - self.y.mean())**2).sum()
+
+    def get_components(self):
+        return self.b.tolist()
+
+    def save(self, path='model.json'):
         with open(path, 'w') as f:
-            json.dump(jsonpickle.encode(self), f)  # making sure the output is serializable
+            json.dump(jsonpickle.encode(self), f)
 
-    def load(self, path='data/model.json'):
+    def load(self, path='model.json'):
+
         with open(path, 'r') as f:
             m = f.read()
-        return jsonpickle.decode(json.loads(m))
 
-# def save(model, path='model.json'):
-#     with open(path, 'w') as f:
-#         json.dump(jsonpickle.encode(model), f)  # making sure the output is serializable
-#
-#
-# def load(path='model.json'):
-#     with open(path, 'r') as f:
-#         m = f.read()
-#     return jsonpickle.decode(json.loads(m))
+        loaded_model = jsonpickle.decode(json.loads(m))
+        params = loaded_model.get_params()
+        self.set_params(**params)

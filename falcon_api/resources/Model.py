@@ -1,7 +1,5 @@
-import json
 from falcon_api.data.dummy import get_data
 from falcon_api.model.model import Regressor
-import jsonpickle
 import json
 
 
@@ -11,66 +9,65 @@ class Fit:
         """
             Fits a regressor with degree d
         """
-
         x, y = get_data()
 
         d = int(req.media.get('d'))
 
-        model = Regressor(d)
-        model.fit(x, y)
-        save(model)
-        resp.body = json.dumps({'success': "Model artefact written in JSON format", 'components': model.B.tolist()})
+        model = Regressor(degree=d)
+        score = model.fit(x, y)
+        model.save()
+
+        resp.body = json.dumps({'success': "Model artefact written in JSON format",
+                                'components': model.get_components(),
+                                'score': score})
 
     @staticmethod
     def on_get(req, resp):
         """
             Returns the fitted regressor
         """
-        model = load()
-        resp.body = json.dumps({'degree': model.d, 'components': model.B.tolist()})
+        model = Regressor()
+        model.load()
+
+        params = model.get_params()
+        print(f"Parameters of loaded model {params}")
+        resp.body = json.dumps({'components' : model.get_components()})
 
 
 class Predict:
-    # @staticmethod
-    # def on_post(req, resp):
-    #     query = json.loads(req.stream.read())
-    #     x = int(query['x'])
-    #
-    #     try:
-    #         model = load()
-    #         resp.body = json.dumps(model.predict(x).tolist())  # predict on the same x (!)
-    #     except FileNotFoundError:
-    #         resp.body = json.dumps(
-    #             {'error': "Model not trained yet"})
+
+    @staticmethod
+    def on_post(req, resp):
+        try:
+            model = Regressor()
+            x = req.media.get('x')
+            if isinstance(x, list):
+                model.load()
+                resp.body = json.dumps(model.predict(x).tolist())  # predict on the same x (!)
+            else:
+                resp.body = json.dumps({'error': 'TypeError: Input should be a list'})
+        except FileNotFoundError:
+            resp.body = json.dumps({'error': "Model not trained yet"})
 
     @staticmethod
     def on_get(req, resp):
         try:
-            model = load()
+            model = Regressor()
+            model.load()
+            x = int(req.media.get('x'))
+
             resp.body = json.dumps(model.predict(x).tolist())  # predict on the same x (!)
         except FileNotFoundError:
+            resp.body = json.dumps({'error': "Model not trained yet"})
+
+
+class Score:
+
+    def on_get(self, req, resp):
+        try:
+            e = Evaluate(y)
+            m = load()
+            resp.body = json.dumps(e.score(m.predict(x)))  # deviation du to fuzz factor
+        except FileNotFoundError:
             resp.body = json.dumps(
-                {'error': "Model not trained yet"})
-
-
-def save(model, path='model.json'):
-    with open(path, 'w') as f:
-        json.dump(jsonpickle.encode(model), f)  # making sure the output is serializable
-
-
-def load(path='model.json'):
-    with open(path, 'r') as f:
-        m = f.read()
-    return jsonpickle.decode(json.loads(m))
-
-
-# class Score:
-#
-#     def on_get(self, req, resp):
-#         try:
-#             e = Evaluate(y)
-#             m = load()
-#             resp.body = json.dumps(e.score(m.predict(x)))  # deviation du to fuzz factor
-#         except FileNotFoundError:
-#             resp.body = json.dumps(
-#                 {'error': "Model not trained yet; visit one of the '/fit/{multi,poly}' endpoints first"})
+                {'error': "Model not trained yet; visit one of the '/fit/{multi,poly}' endpoints first"})
