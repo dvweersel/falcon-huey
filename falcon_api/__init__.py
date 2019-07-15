@@ -5,7 +5,7 @@ from huey import RedisHuey
 
 # Need to figure out how to make this work with the application factory pattern
 # huey = RedisHuey('queue', immediate=True)
-huey_queue = RedisHuey('queue')
+huey_queue = RedisHuey('queue', immediate=True)
 
 
 def create_api():
